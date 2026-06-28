@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#061d3b" />
+  <title>Shark Surge</title>
+  <style>
+:root {
+  --deep: #061d3b;
+  --water-1: #073d68;
+  --water-2: #087ea4;
+  --foam: #d9fcff;
+  --text: #eefcff;
+  --muted: #98d7e6;
+  --panel: rgba(4, 21, 45, 0.82);
+  --panel-border: rgba(217, 252, 255, 0.2);
+  --gold: #ffd166;
+  --danger: #ff5e7a;
+  --good: #7cffcb;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% -10%, #1aaad2 0%, var(--deep) 58%, #020b18 100%);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom);
+}
+
+.game-card {
+  width: min(1100px, 100%);
+  height: min(780px, 100svh - 12px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  overflow: hidden;
+  background: rgba(3, 13, 30, 0.48);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+
+.topbar,
+.bottom-ui {
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(4, 16, 35, 0.84), rgba(4, 16, 35, 0.54));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.bottom-ui {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 0;
+  background: linear-gradient(0deg, rgba(4, 16, 35, 0.9), rgba(4, 16, 35, 0.56));
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.logo-fin {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #65e6ff, #0d5f90 58%, #04284b);
+  position: relative;
+  flex: 0 0 auto;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.logo-fin::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-bottom: 25px solid #e7fbff;
+  transform: rotate(-28deg);
+  left: 8px;
+  top: 4px;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.25));
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(1.05rem, 3.5vw, 1.55rem);
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.brand p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 3px;
+}
+
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.hud-pill {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  min-width: 78px;
+  justify-content: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(217, 252, 255, 0.1);
+  border: 1px solid rgba(217, 252, 255, 0.16);
+}
+
+.hud-pill span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hud-pill strong {
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+}
+
+.hearts {
+  min-width: auto;
+  color: #ff6f92;
+  letter-spacing: 2px;
+  font-size: 1.05rem;
+  text-shadow: 0 0 10px rgba(255, 94, 122, 0.38);
+}
+
+.game-area {
+  position: relative;
+  overflow: hidden;
+  touch-action: none;
+  background:
+    radial-gradient(circle at 20% 18%, rgba(141, 247, 255, 0.25), transparent 22%),
+    radial-gradient(circle at 84% 12%, rgba(255, 255, 255, 0.15), transparent 25%),
+    linear-gradient(180deg, #0a8fb3 0%, #065a87 40%, #03345d 76%, #021e3e 100%);
+  isolation: isolate;
+}
+
+.sun-rays {
+  position: absolute;
+  inset: -10% 0 auto 0;
+  height: 62%;
+  background: conic-gradient(from 220deg at 50% -15%, rgba(255, 255, 255, 0.22), transparent 8deg, rgba(255, 255, 255, 0.11) 16deg, transparent 28deg, rgba(255, 255, 255, 0.16) 36deg, transparent 48deg);
+  opacity: 0.5;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(1px);
+}
+
+.bubbles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.75;
+  background-image:
+    radial-gradient(circle, rgba(217, 252, 255, 0.55) 0 2px, transparent 3px),
+    radial-gradient(circle, rgba(217, 252, 255, 0.45) 0 3px, transparent 4px),
+    radial-gradient(circle, rgba(217, 252, 255, 0.35) 0 1px, transparent 2px);
+  background-size: 150px 180px, 240px 260px, 95px 120px;
+  background-position: 10px 20px, 50px 90px, 20px 50px;
+  animation: driftBubbles 14s linear infinite;
+}
+
+@keyframes driftBubbles {
+  from { background-position: 10px 220px, 50px 340px, 20px 180px; }
+  to { background-position: 10px -180px, 50px -260px, 20px -120px; }
+}
+
+.seafloor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 82px;
+  background:
+    radial-gradient(ellipse at 12% 100%, rgba(255, 209, 102, 0.26), transparent 42%),
+    radial-gradient(ellipse at 48% 100%, rgba(255, 209, 102, 0.21), transparent 48%),
+    radial-gradient(ellipse at 85% 100%, rgba(255, 209, 102, 0.18), transparent 40%),
+    linear-gradient(180deg, transparent, rgba(3, 10, 23, 0.78));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.seafloor::before,
+.seafloor::after {
+  content: "";
+  position: absolute;
+  bottom: 14px;
+  width: 10px;
+  height: 50px;
+  border-radius: 100% 100% 0 0;
+  background: linear-gradient(180deg, #49d095, #0a6e68);
+  transform-origin: bottom center;
+  box-shadow:
+    28px 8px 0 -1px #29a978,
+    58px -6px 0 1px #51d690,
+    98px 10px 0 -2px #197d6d,
+    760px 0 0 1px #31b983,
+    805px 5px 0 -1px #62dca2,
+    845px -8px 0 1px #218b75;
+  opacity: 0.85;
+}
+
+.seafloor::before { left: 8%; transform: rotate(-7deg); }
+.seafloor::after { left: 58%; transform: rotate(8deg); }
+
+.shark,
+.entity {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+  z-index: 5;
+}
+
+.shark {
+  width: 112px;
+  height: 58px;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.28));
+}
+
+.shark-body {
+  position: absolute;
+  right: 8px;
+  top: 12px;
+  width: 88px;
+  height: 34px;
+  border-radius: 58% 44% 48% 58%;
+  background: linear-gradient(180deg, #dff7ff 0%, #7cb4cb 36%, #2c5d82 72%, #113a64 100%);
+  box-shadow: inset 10px 8px 16px rgba(255, 255, 255, 0.28), inset -12px -10px 16px rgba(0, 0, 0, 0.22);
+}
+
+.shark-body::before {
+  content: "";
+  position: absolute;
+  right: -13px;
+  top: 5px;
+  width: 22px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #bcecff, #3b7799 72%);
+  clip-path: polygon(0 5%, 100% 50%, 0 95%);
+}
+
+.shark-belly {
+  position: absolute;
+  right: 18px;
+  top: 32px;
+  width: 62px;
+  height: 11px;
+  border-radius: 0 0 100% 100%;
+  background: rgba(238, 252, 255, 0.78);
+}
+
+.shark-tail {
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(90deg, #326d94, #8cc6da);
+  clip-path: polygon(100% 50%, 0 4%, 22% 50%, 0 96%);
+  animation: tailSwim 0.36s ease-in-out infinite alternate;
+  transform-origin: 100% 50%;
+}
+
+@keyframes tailSwim {
+  from { transform: rotate(-8deg); }
+  to { transform: rotate(8deg); }
+}
+
+.shark-top-fin {
+  position: absolute;
+  left: 52px;
+  top: 0;
+  width: 26px;
+  height: 25px;
+  background: linear-gradient(135deg, #8bc9df, #25577c);
+  clip-path: polygon(12% 100%, 58% 0, 100% 100%);
+}
+
+.shark-side-fin {
+  position: absolute;
+  left: 60px;
+  top: 36px;
+  width: 26px;
+  height: 24px;
+  background: linear-gradient(135deg, #6aa2bf, #153a62);
+  clip-path: polygon(0 0, 100% 18%, 26% 100%);
+  opacity: 0.95;
+}
+
+.shark-eye {
+  position: absolute;
+  right: 24px;
+  top: 20px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #031020;
+  box-shadow: inset 2px 1px 0 #fff;
+}
+
+.shark-mouth {
+  position: absolute;
+  right: 4px;
+  top: 31px;
+  width: 21px;
+  height: 11px;
+  border-bottom: 3px solid #061d3b;
+  border-radius: 0 0 100% 100%;
+  transform: rotate(-5deg);
+}
+
+.shark.dashing .dash-ring {
+  position: absolute;
+  inset: -12px;
+  border-radius: 48%;
+  border: 3px solid rgba(217, 252, 255, 0.55);
+  opacity: 1;
+  animation: pulseRing 0.28s ease-out infinite;
+}
+
+@keyframes pulseRing {
+  from { transform: scale(0.85); opacity: 0.75; }
+  to { transform: scale(1.15); opacity: 0; }
+}
+
+.fish {
+  width: 52px;
+  height: 30px;
+  filter: drop-shadow(0 9px 9px rgba(0, 0, 0, 0.2));
+}
+
+.fish-body {
+  position: absolute;
+  right: 0;
+  top: 5px;
+  width: 37px;
+  height: 20px;
+  border-radius: 52% 44% 44% 52%;
+  background: linear-gradient(180deg, #fff4a8, #ff9f1c 68%, #d96a00);
+  box-shadow: inset 5px 4px 8px rgba(255, 255, 255, 0.35), inset -8px -6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.fish-tail {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 19px;
+  height: 20px;
+  background: #ffb13b;
+  clip-path: polygon(100% 50%, 0 0, 22% 50%, 0 100%);
+  animation: smallTail 0.28s ease-in-out infinite alternate;
+  transform-origin: 100% 50%;
+}
+
+@keyframes smallTail {
+  from { transform: rotate(-12deg); }
+  to { transform: rotate(12deg); }
+}
+
+.fish-eye {
+  position: absolute;
+  right: 8px;
+  top: 11px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #061d3b;
+  box-shadow: inset 1px 0 0 #fff;
+}
+
+.fish-fin {
+  position: absolute;
+  left: 24px;
+  top: 20px;
+  width: 12px;
+  height: 11px;
+  background: rgba(255, 255, 255, 0.55);
+  clip-path: polygon(0 0, 100% 10%, 38% 100%);
+}
+
+.fish.silver .fish-body { background: linear-gradient(180deg, #f4ffff, #9ee8f1 56%, #3f91b5); }
+.fish.silver .fish-tail { background: #8dddec; }
+.fish.gold .fish-body { background: linear-gradient(180deg, #fff8c8, #ffd166 55%, #f08c00); }
+.fish.gold .fish-tail { background: #ffe083; }
+.fish.gold { filter: drop-shadow(0 0 12px rgba(255, 209, 102, 0.62)) drop-shadow(0 9px 9px rgba(0, 0, 0, 0.2)); }
+.fish.big .fish-body { background: linear-gradient(180deg, #ffc9d4, #ff5e7a 56%, #7a1430); }
+.fish.big .fish-tail { background: #ff7890; }
+.fish.big::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 17px;
+  width: 12px;
+  height: 5px;
+  border-bottom: 2px solid #22000a;
+  border-radius: 50%;
+}
+
+.jelly {
+  width: 45px;
+  height: 56px;
+  filter: drop-shadow(0 0 12px rgba(255, 94, 122, 0.42));
+}
+
+.jelly-dome {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 37px;
+  height: 25px;
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(180deg, rgba(255, 215, 228, 0.92), rgba(255, 94, 122, 0.72));
+  box-shadow: inset 8px 5px 10px rgba(255, 255, 255, 0.32);
+}
+
+.jelly-tentacles {
+  position: absolute;
+  left: 8px;
+  top: 22px;
+  width: 29px;
+  height: 34px;
+  background:
+    linear-gradient(90deg, transparent 0 6px, rgba(255, 150, 177, 0.9) 6px 8px, transparent 8px 13px, rgba(255, 150, 177, 0.9) 13px 16px, transparent 16px 21px, rgba(255, 150, 177, 0.9) 21px 23px, transparent 23px);
+  border-radius: 0 0 50% 50%;
+  animation: jellyWave 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes jellyWave {
+  from { transform: skewX(-6deg); }
+  to { transform: skewX(8deg); }
+}
+
+.chomp {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 12;
+  animation: chompPop 0.35s ease-out forwards;
+}
+
+@keyframes chompPop {
+  from { transform: scale(0.25); opacity: 0.95; }
+  to { transform: scale(1.35); opacity: 0; }
+}
+
+.float-text {
+  position: absolute;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 13;
+  animation: floatUp 0.75s ease-out forwards;
+}
+
+@keyframes floatUp {
+  from { transform: translateY(0) scale(0.95); opacity: 1; }
+  to { transform: translateY(-38px) scale(1.1); opacity: 0; }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 18px;
+  background: radial-gradient(circle at 50% 35%, rgba(20, 159, 200, 0.24), rgba(2, 9, 22, 0.74) 68%);
+  backdrop-filter: blur(7px);
+  z-index: 30;
+}
+
+.overlay.show {
+  display: grid;
+}
+
+.panel {
+  position: relative;
+  width: min(520px, 100%);
+  padding: clamp(22px, 5vw, 34px);
+  border-radius: 28px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  text-align: center;
+  overflow: hidden;
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 16% 0, rgba(124, 255, 203, 0.22), transparent 32%), radial-gradient(circle at 85% 12%, rgba(255, 209, 102, 0.12), transparent 30%);
+  pointer-events: none;
+}
+
+.panel > * {
+  position: relative;
+}
+
+.panel.compact {
+  width: min(430px, 100%);
+}
+
+.panel-fin {
+  width: 74px;
+  height: 74px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7cffcb, #0c96c5 60%, #06234b);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.panel-fin::after {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 19px solid transparent;
+  border-right: 19px solid transparent;
+  border-bottom: 46px solid rgba(255, 255, 255, 0.95);
+  transform: translate(18px, 11px) rotate(-25deg);
+}
+
+.panel h2 {
+  font-size: clamp(2.2rem, 9vw, 4.4rem);
+  line-height: 0.9;
+  margin-bottom: 8px;
+  letter-spacing: -0.06em;
+}
+
+.panel p {
+  color: #c8eff7;
+  line-height: 1.45;
+}
+
+.panel .subtitle {
+  color: var(--gold);
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.rules-grid,
+.final-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.rules-grid div,
+.final-stats div {
+  padding: 11px;
+  border: 1px solid rgba(217, 252, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(217, 252, 255, 0.08);
+}
+
+.rules-grid strong,
+.final-stats strong,
+.rules-grid span,
+.final-stats span {
+  display: block;
+}
+
+.rules-grid strong,
+.final-stats strong {
+  font-size: 1.12rem;
+}
+
+.rules-grid span,
+.final-stats span {
+  margin-top: 4px;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.primary-button,
+.dash-button,
+.control-btn {
+  border: 0;
+  color: #031020;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+
+.primary-button {
+  width: min(260px, 100%);
+  padding: 14px 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff7b5, var(--gold));
+  box-shadow: 0 14px 30px rgba(255, 209, 102, 0.22), inset 0 -2px 0 rgba(0, 0, 0, 0.14);
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.primary-button:active,
+.dash-button:active,
+.control-btn:active {
+  transform: translateY(2px) scale(0.98);
+}
+
+.ability-bar {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ability-bar::-webkit-scrollbar { display: none; }
+
+.ability-card {
+  min-width: 122px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  border: 1px solid rgba(217, 252, 255, 0.13);
+  background: rgba(217, 252, 255, 0.07);
+  opacity: 0.56;
+  transition: opacity 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.ability-card strong,
+.ability-card span {
+  display: block;
+  white-space: nowrap;
+}
+
+.ability-card strong { font-size: 0.86rem; }
+.ability-card span { color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
+
+.ability-card.active {
+  opacity: 1;
+  border-color: rgba(124, 255, 203, 0.42);
+  background: rgba(124, 255, 203, 0.12);
+}
+
+.ability-card.cooling {
+  border-color: rgba(255, 209, 102, 0.4);
+  background: rgba(255, 209, 102, 0.12);
+}
+
+.touch-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dpad {
+  position: relative;
+  width: 118px;
+  height: 82px;
+  display: grid;
+  grid-template-columns: repeat(3, 38px);
+  grid-template-rows: repeat(2, 38px);
+  gap: 4px;
+}
+
+.control-btn,
+.dash-button {
+  border-radius: 16px;
+  background: rgba(217, 252, 255, 0.82);
+  color: #052141;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.18);
+}
+
+.control-btn {
+  width: 38px;
+  height: 38px;
+}
+
+.control-btn.up { grid-column: 2; grid-row: 1; }
+.control-btn.left { grid-column: 1; grid-row: 2; }
+.control-btn.right { grid-column: 3; grid-row: 2; }
+.control-btn.down { grid-column: 2; grid-row: 2; }
+
+.dash-button {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #7cffcb, #2be0af);
+}
+
+.dash-button.locked,
+.dash-button.cooldown {
+  opacity: 0.52;
+  filter: grayscale(0.4);
+}
+
+@media (max-width: 720px) {
+  .game-card {
+    height: 100svh;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    padding: 8px 10px;
+  }
+
+  .brand p {
+    display: none;
+  }
+
+  .hud {
+    gap: 5px;
+  }
+
+  .hud-pill {
+    min-width: 58px;
+    padding: 6px 8px;
+  }
+
+  .hud-pill span {
+    display: none;
+  }
+
+  .bottom-ui {
+    padding: 8px 9px;
+    align-items: center;
+  }
+
+  .ability-card {
+    min-width: 108px;
+    padding: 7px 9px;
+  }
+
+  .ability-card strong { font-size: 0.78rem; }
+  .ability-card span { font-size: 0.66rem; }
+
+  .dpad {
+    width: 104px;
+    height: 72px;
+    grid-template-columns: repeat(3, 34px);
+    grid-template-rows: repeat(2, 34px);
+    gap: 3px;
+  }
+
+  .control-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 14px;
+  }
+
+  .dash-button {
+    width: 64px;
+    height: 64px;
+    font-size: 0.84rem;
+  }
+
+  .rules-grid,
+  .final-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 470px) {
+  .logo-fin {
+    display: none;
+  }
+
+  .brand {
+    min-width: auto;
+  }
+
+  .bottom-ui {
+    gap: 6px;
+  }
+
+  .touch-controls {
+    gap: 6px;
+  }
+
+  .ability-card {
+    min-width: 96px;
+  }
+}
+
+</style>
+</head>
+<body>
+  <main class="app" aria-label="Shark Surge arcade game">
+    <section class="game-card">
+      <header class="topbar">
+        <div class="brand">
+          <span class="logo-fin" aria-hidden="true"></span>
+          <div>
+            <h1>Shark Surge</h1>
+            <p>Eat. Grow. Evolve.</p>
+          </div>
+        </div>
+        <div class="hud" aria-live="polite">
+          <div class="hud-pill"><span>Score</span><strong id="score">0</strong></div>
+          <div class="hud-pill"><span>Level</span><strong id="level">1</strong></div>
+          <div class="hud-pill hearts" id="hearts" aria-label="Health">♥ ♥ ♥</div>
+        </div>
+      </header>
+
+      <div id="gameArea" class="game-area" role="application" aria-label="Play area. Use arrow keys, WASD, touch, or the on-screen controls to move.">
+        <div class="sun-rays" aria-hidden="true"></div>
+        <div class="bubbles" aria-hidden="true"></div>
+        <div class="seafloor" aria-hidden="true"></div>
+        <div id="player" class="shark" aria-hidden="true">
+          <div class="shark-tail"></div>
+          <div class="shark-body"></div>
+          <div class="shark-belly"></div>
+          <div class="shark-top-fin"></div>
+          <div class="shark-side-fin"></div>
+          <div class="shark-eye"></div>
+          <div class="shark-mouth"></div>
+          <div class="dash-ring"></div>
+        </div>
+
+        <div id="startScreen" class="overlay show">
+          <div class="panel">
+            <div class="panel-fin" aria-hidden="true"></div>
+            <h2>Shark Surge</h2>
+            <p class="subtitle">A modern arcade feeding frenzy.</p>
+            <p>Eat fish smaller than you, grow bigger, unlock abilities, and avoid jellyfish and predators until you are large enough to dominate them.</p>
+            <div class="rules-grid">
+              <div><strong>Move</strong><span>WASD / arrows / touch</span></div>
+              <div><strong>Dash</strong><span>Space or dash button</span></div>
+              <div><strong>Goal</strong><span>Eat, level up, survive</span></div>
+            </div>
+            <button id="startButton" class="primary-button">Start Game</button>
+          </div>
+        </div>
+
+        <div id="gameOverScreen" class="overlay">
+          <div class="panel compact">
+            <h2>Game Over</h2>
+            <p class="subtitle">The reef remembers your run.</p>
+            <div class="final-stats">
+              <div><span>Final Score</span><strong id="finalScore">0</strong></div>
+              <div><span>Best Score</span><strong id="bestScore">0</strong></div>
+              <div><span>Top Level</span><strong id="finalLevel">1</strong></div>
+            </div>
+            <button id="restartButton" class="primary-button">Restart</button>
+          </div>
+        </div>
+      </div>
+
+      <footer class="bottom-ui">
+        <div class="ability-bar">
+          <div class="ability-card active" id="abilityBite"><strong>Bite</strong><span>Eat smaller fish</span></div>
+          <div class="ability-card" id="abilityDash"><strong>Dash</strong><span>Unlocks L2</span></div>
+          <div class="ability-card" id="abilityMagnet"><strong>Current Pull</strong><span>Unlocks L3</span></div>
+          <div class="ability-card" id="abilityArmor"><strong>Iron Hide</strong><span>Unlocks L4</span></div>
+        </div>
+
+        <div class="touch-controls" aria-label="Touch controls">
+          <div class="dpad" aria-hidden="true">
+            <button class="control-btn up" data-dir="up" aria-label="Move up">▲</button>
+            <button class="control-btn left" data-dir="left" aria-label="Move left">◀</button>
+            <button class="control-btn right" data-dir="right" aria-label="Move right">▶</button>
+            <button class="control-btn down" data-dir="down" aria-label="Move down">▼</button>
+          </div>
+          <button id="dashButton" class="dash-button" aria-label="Dash ability">Dash</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
